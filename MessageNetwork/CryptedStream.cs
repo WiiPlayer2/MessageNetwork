@@ -36,6 +36,7 @@ namespace MessageNetwork
 
             Base = baseStream;
             this.keyPair = keyPair;
+            LocalPublicKey = keyPair.Public as RsaKeyParameters;
 
             decryptEngine = new OaepEncoding(new RsaEngine());
             decryptEngine.Init(false, keyPair.Private);
@@ -47,6 +48,8 @@ namespace MessageNetwork
         }
 
         public RsaKeyParameters ReceivedPublicKey { get; private set; }
+
+        public RsaKeyParameters LocalPublicKey { get; private set; }
 
         public bool Setup()
         {
