@@ -49,6 +49,10 @@ namespace MessageNetwork
             {
                 InternalExceptionOccured(this, new MessageNetworkException("Error while receiving message.", e));
             }
+            finally
+            {
+                baseStream.Close();
+            }
         }
 
         public RsaKeyParameters ReceivedPublicKey
