@@ -46,6 +46,8 @@ namespace MessageNetwork
             bReader = new BinaryReader(Base);
         }
 
+        public RsaKeyParameters ReceivedPublicKey { get; private set; }
+
         public bool Setup()
         {
             return Setup(null);
@@ -65,6 +67,7 @@ namespace MessageNetwork
             mod = bReader.ReadBytes(bReader.ReadInt32());
             exp = bReader.ReadBytes(bReader.ReadInt32());
             publicKey = new RsaKeyParameters(false, new BigInteger(mod), new BigInteger(exp));
+            ReceivedPublicKey = publicKey;
 
             var authorized = true;
             if (authorizedCallback != null)
