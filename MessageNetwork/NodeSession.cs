@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MessageNetwork.Messages;
+using Newtonsoft.Json;
 using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.Collections.Generic;
@@ -67,16 +68,8 @@ namespace MessageNetwork
         public event RawMessageReceivedEventHandler RawMessageReceived = (_,__,___)=> { };
         public event EventHandler<MessageNetworkException> InternalExceptionOccured = (_, __) => { };
 
-        public void SendMessage(RsaKeyParameters receiver, T message, byte[] payload)
+        private void SendMessage(NodeMessage<T> msg, byte[] payload)
         {
-            var msg = new NodeMessage<T>()
-            {
-                Sender = baseStream.LocalPublicKey,
-                Receiver = receiver,
-                IsSystemMessage = false,
-                Message = message,
-                PayloadLength = payload?.Length,
-            };
             var json = JsonConvert.SerializeObject(msg);
 
             lock (bWriter)
@@ -88,6 +81,32 @@ namespace MessageNetwork
                 }
                 bWriter.Flush();
             }
+        }
+
+        public void SendMessage(RsaKeyParameters receiver, T message, byte[] payload)
+        {
+            var msg = new NodeMessage<T>()
+            {
+                Sender = baseStream.LocalPublicKey,
+                Receiver = receiver,
+                IsSystemMessage = false,
+                Message = message,
+                PayloadLength = payload?.Length,
+            };
+            SendMessage(msg, payload);
+        }
+
+        internal void SendMessage(RsaKeyParameters receiver, SystemMessage message, byte[] payload)
+        {
+            var msg = new NodeMessage<T>()
+            {
+                Sender = baseStream.LocalPublicKey,
+                Receiver = receiver,
+                IsSystemMessage = true,
+                PayloadLength = payload?.Length,
+                SystemMessage = message,
+            };
+            SendMessage(msg, payload);
         }
     }
 }

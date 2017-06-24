@@ -50,7 +50,7 @@
   <ItemGroup>
     <Compile Include="CryptedStream.cs" />
     <Compile Include="NetworkException.cs" />
-    <Compile Include="NodeMessage.cs" />
+    <Compile Include="Messages\NodeMessage.cs" />
     <Compile Include="NodeSession.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
