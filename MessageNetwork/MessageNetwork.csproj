@@ -49,6 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CryptedStream.cs" />
+    <Compile Include="Messages\SystemMessage.cs" />
+    <Compile Include="Messages\SystemMessageType.cs" />
     <Compile Include="NetworkException.cs" />
     <Compile Include="Messages\NodeMessage.cs" />
     <Compile Include="NodeSession.cs" />
