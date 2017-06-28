@@ -43,12 +43,16 @@ namespace MessageNetwork
                         payload = bReader.ReadBytes(msg.PayloadLength.Value);
                     }
 
-                    RawMessageReceived(this, msg, payload);
+                    try
+                    {
+                        RawMessageReceived(this, msg, payload);
+                    }
+                    catch { }
                 }
             }
             catch (Exception e)
             {
-                InternalExceptionOccured(this, new MessageNetworkException("Error while receiving message.", e));
+                InternalExceptionOccured(this, new MessageNetworkException("Error while receiving a message.", e));
             }
             finally
             {
@@ -73,18 +77,25 @@ namespace MessageNetwork
         public event RawMessageReceivedEventHandler RawMessageReceived = (_,__,___)=> { };
         public event EventHandler<MessageNetworkException> InternalExceptionOccured = (_, __) => { };
 
-        private void SendMessage(NodeMessage<T> msg, byte[] payload)
+        public void SendMessage(NodeMessage<T> msg, byte[] payload)
         {
             var json = JsonConvert.SerializeObject(msg);
 
-            lock (bWriter)
+            try
             {
-                bWriter.Write(json);
-                if (payload != null)
+                lock (bWriter)
                 {
-                    bWriter.Write(payload);
+                    bWriter.Write(json);
+                    if (payload != null)
+                    {
+                        bWriter.Write(payload);
+                    }
+                    bWriter.Flush();
                 }
-                bWriter.Flush();
+            }
+            catch(Exception e)
+            {
+                InternalExceptionOccured(this, new MessageNetworkException("Error while sending a message.", e));
             }
         }
 
