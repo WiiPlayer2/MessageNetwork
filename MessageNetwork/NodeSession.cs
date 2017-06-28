@@ -56,6 +56,11 @@ namespace MessageNetwork
             }
         }
 
+        public void StartReadLoop()
+        {
+            receiveThread.Start();
+        }
+
         public RsaKeyParameters ReceivedPublicKey
         {
             get
