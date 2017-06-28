@@ -37,6 +37,8 @@ namespace MessageNetwork
             tcpListener = new TcpListener(localaddr, port);
         }
 
+        public TrustedKeyStore TrustedKeys { get; set; }
+
         public void SendMessage(RsaKeyParameters receiver, T message, byte[] payload)
         {
             //TODO: Lock tree
@@ -57,23 +59,9 @@ namespace MessageNetwork
             }
         }
 
-        public void AddTrustedPublicKey(RsaKeyParameters publicKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RemoveTrustedPublicKey(RsaKeyParameters publicKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ClearTrustedPublicKey(RsaKeyParameters publicKey)
-        {
-            throw new NotImplementedException();
-        }
-
         public void Setup()
         {
+            //TODO: Create TrustedKeyStore if not created
             if (tcpListener != null && acceptThread != null)
             {
                 tcpListener.Start();
@@ -84,14 +72,11 @@ namespace MessageNetwork
 
         private void AcceptLoop()
         {
-            while(true)
+            while (true)
             {
                 var client = tcpListener.AcceptTcpClient();
                 var cryptStream = new CryptedStream(client.GetStream(), keyPair);
-                if(cryptStream.Setup(key =>
-                {
-                    throw new NotImplementedException();
-                }))
+                if (cryptStream.Setup(key => TrustedKeys.Contains(key)))
                 {
                     var session = new NodeSession<T>(cryptStream);
                     session.InternalExceptionOccured += Session_InternalExceptionOccured;

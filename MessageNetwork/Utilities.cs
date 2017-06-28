@@ -14,6 +14,18 @@ namespace MessageNetwork
 {
     public static class Utilities
     {
+        public static string BasePath
+        {
+            get
+            {
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MessageNetwork");
+            }
+        }
+
+        public static string GetPath(params string[] paths)
+        {
+            return Path.Combine(new string[] { BasePath }.Concat(paths).ToArray());
+        }
 
         public static AsymmetricCipherKeyPair GenerateKeyPair()
         {
@@ -54,6 +66,17 @@ namespace MessageNetwork
             fileReader.Close();
 
             return key;
+        }
+
+        public static string GetHashString(this object obj)
+        {
+            var hashCode = obj.GetHashCode();
+            var bytes = BitConverter.GetBytes(hashCode);
+            if(!BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bytes);
+            }
+            return string.Concat(bytes.Select(o => o.ToString("X2")));
         }
     }
 }

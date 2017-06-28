@@ -20,6 +20,9 @@ namespace Testing
         static void Main(string[] args)
         {
             var lkey = Utilities.LoadKey();
+            Console.WriteLine(lkey.Public.GetHashCode());
+            var lkey2 = Utilities.LoadKey();
+            Console.WriteLine(lkey2.Public.GetHashCode());
 
             new Thread(() => RunServer(lkey)).Start();
             Thread.Sleep(1000);
