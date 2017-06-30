@@ -20,6 +20,8 @@ namespace MessageNetwork
 
         private Node<T> rootNode;
 
+        private Node<T> upstreamNode;
+
         private TcpClient tcpClient;
 
         private TcpListener tcpListener;
@@ -52,7 +54,7 @@ namespace MessageNetwork
 
         public delegate void NodeLeftEventHandler(MessageNode<T> sender, RsaKeyParameters publicKey);
 
-        public delegate void MessageReceivedEventHandler(MessageNode<T> sender, RsaKeyParameters senderKey, T message, bool isPublic);
+        public delegate void MessageReceivedEventHandler(MessageNode<T> sender, RsaKeyParameters senderKey, bool isPublic, T message, byte[] payload);
 
         #endregion Public Delegates
 
@@ -108,19 +110,32 @@ namespace MessageNetwork
             }
         }
 
-        public void Setup(string host, int port)
+        public bool Setup(string host, int port)
         {
             Setup();
 
             if (tcpClient == null)
             {
-                tcpClient = new TcpClient();
-                tcpClient.Connect(host, port);
-                var cryptStream = new CryptedStream(tcpClient.GetStream(), keyPair);
-                if (cryptStream.Setup())
+                try
                 {
-                    SetupNode(cryptStream);
+                    tcpClient = new TcpClient();
+                    tcpClient.Connect(host, port);
+                    var cryptStream = new CryptedStream(tcpClient.GetStream(), keyPair);
+                    if (cryptStream.Setup())
+                    {
+                        upstreamNode = SetupNode(cryptStream);
+                        return true;
+                    }
                 }
+                catch { }
+
+                tcpClient.Close();
+                tcpClient = null;
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
 
@@ -141,7 +156,7 @@ namespace MessageNetwork
             }
         }
 
-        private void HandleMessage(NodeMessage<T> msg)
+        private void HandleMessage(NodeMessage<T> msg, byte[] payload)
         {
             if (msg.IsSystemMessage)
             {
@@ -163,20 +178,43 @@ namespace MessageNetwork
                             parent.AddChild(node);
                             CallNodeJoined(node.PublicKey);
                             break;
-                        } 
+                        }
                 }
             }
             else
             {
-                CallMessageReceived(msg.Sender, msg.Message, msg.Receiver == null);
+                CallMessageReceived(msg.Sender, msg.Receiver == null, msg.Message, payload);
             }
         }
 
         private void Session_InternalExceptionOccured(object sender, MessageNetworkException e)
         {
             var session = sender as NodeSession<T>;
+            var node = rootNode.Children.SingleOrDefault(o => o.Session == session);
+            
+            if(node != null)
+            {
+                node.Remove();
+                var leftMsg = new NodeLeftMessage()
+                {
+                    PublicKey = node.PublicKey,
+                };
+                foreach(var n in rootNode.Children)
+                {
+                    n.Session.SendMessage(null, leftMsg, null);
+                }
 
-            throw new NotImplementedException();
+                if(node == upstreamNode)
+                {
+                    tcpClient.Close();
+                    tcpClient = null;
+                    upstreamNode = null;
+
+                    //TODO: Call disconnected event
+                }
+
+                CallNodeLeft(node.PublicKey);
+            }
         }
 
         private void Session_RawMessageReceived(NodeSession<T> sender, NodeMessage<T> message, byte[] payload)
@@ -185,7 +223,7 @@ namespace MessageNetwork
             {
                 if (message.Receiver.Equals(keyPair.Public))
                 {
-                    HandleMessage(message);
+                    HandleMessage(message, payload);
                 }
                 else
                 {
@@ -199,21 +237,41 @@ namespace MessageNetwork
                     node.Session.SendMessage(message, payload);
                 }
 
-                HandleMessage(message);
+                HandleMessage(message, payload);
             }
         }
 
-        private void SetupNode(CryptedStream cryptStream)
+        private Node<T> SetupNode(CryptedStream cryptStream)
         {
             var session = new NodeSession<T>(cryptStream);
             session.InternalExceptionOccured += Session_InternalExceptionOccured;
             session.RawMessageReceived += Session_RawMessageReceived;
 
+            var joinMsg = new NodeJoinedMessage()
+            {
+                ParentPublicKey = rootNode.PublicKey,
+                PublicKey = session.ReceivedPublicKey,
+            };
+            foreach (var n in rootNode.Children)
+            {
+                n.Session.SendMessage(null, joinMsg, null);
+            }
+
+            foreach (var n in rootNode.GetAllChildren(true))
+            {
+                session.SendMessage(null, new NodeJoinedMessage()
+                {
+                    ParentPublicKey = n.Parent.PublicKey,
+                    PublicKey = n.PublicKey,
+                }, null);
+            }
+
             var node = new Node<T>(session);
             rootNode.AddChild(node);
 
-            //TODO: Send node tree
-            //TODO: Send joined message
+            CallNodeJoined(node.PublicKey);
+
+            return node;
         }
 
         private void CallNodeJoined(RsaKeyParameters publicKey)
@@ -224,7 +282,7 @@ namespace MessageNetwork
                 {
                     try
                     {
-                        d.DynamicInvoke(this, publicKey);
+                        (d as NodeJoinedEventHandler)(this, publicKey);
                     }
                     catch { }
                 }
@@ -239,22 +297,22 @@ namespace MessageNetwork
                 {
                     try
                     {
-                        d.DynamicInvoke(this, publicKey);
+                        (d as NodeLeftEventHandler)(this, publicKey);
                     }
                     catch { }
                 }
             }
         }
 
-        private void CallMessageReceived(RsaKeyParameters senderKey, T message, bool isPublic)
+        private void CallMessageReceived(RsaKeyParameters senderKey, bool isPublic, T message, byte[] payload)
         {
-            if(MessageReceived != null)
+            if (MessageReceived != null)
             {
-                foreach(var d in MessageReceived.GetInvocationList())
+                foreach (var d in MessageReceived.GetInvocationList())
                 {
                     try
                     {
-                        d.DynamicInvoke(this, senderKey, message, isPublic);
+                        (d as MessageReceivedEventHandler)(this, senderKey, isPublic, message, payload);
                     }
                     catch { }
                 }
