@@ -2,25 +2,31 @@
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MessageNetwork
 {
     public class MessageNode<T>
         where T : CastableMessage<T>
     {
+        #region Private Fields
+
+        private Thread acceptThread;
+
         private AsymmetricCipherKeyPair keyPair;
+
         private Node<T> rootNode;
 
-        private TcpListener tcpListener;
-        private Thread acceptThread;
         private TcpClient tcpClient;
+
+        private TcpListener tcpListener;
+
+        #endregion Private Fields
+
+        #region Public Constructors
 
         public MessageNode(AsymmetricCipherKeyPair keyPair)
         {
@@ -38,7 +44,35 @@ namespace MessageNetwork
             tcpListener = new TcpListener(localaddr, port);
         }
 
+        #endregion Public Constructors
+
+        #region Public Delegates
+
+        public delegate void NodeJoinedEventHandler(MessageNode<T> sender, RsaKeyParameters publicKey);
+
+        public delegate void NodeLeftEventHandler(MessageNode<T> sender, RsaKeyParameters publicKey);
+
+        public delegate void MessageReceivedEventHandler(MessageNode<T> sender, RsaKeyParameters senderKey, T message, bool isPublic);
+
+        #endregion Public Delegates
+
+        #region Public Events
+
+        public event NodeJoinedEventHandler NodeJoined;
+
+        public event NodeLeftEventHandler NodeLeft;
+
+        public event MessageReceivedEventHandler MessageReceived;
+
+        #endregion Public Events
+
+        #region Public Properties
+
         public TrustedKeyStore TrustedKeys { get; set; }
+
+        #endregion Public Properties
+
+        #region Public Methods
 
         public void SendMessage(RsaKeyParameters receiver, T message, byte[] payload)
         {
@@ -62,7 +96,7 @@ namespace MessageNetwork
 
         public void Setup()
         {
-            if(TrustedKeys == null)
+            if (TrustedKeys == null)
             {
                 TrustedKeys = new TrustedKeyStore();
             }
@@ -74,6 +108,26 @@ namespace MessageNetwork
             }
         }
 
+        public void Setup(string host, int port)
+        {
+            Setup();
+
+            if (tcpClient == null)
+            {
+                tcpClient = new TcpClient();
+                tcpClient.Connect(host, port);
+                var cryptStream = new CryptedStream(tcpClient.GetStream(), keyPair);
+                if (cryptStream.Setup())
+                {
+                    SetupNode(cryptStream);
+                }
+            }
+        }
+
+        #endregion Public Methods
+
+        #region Private Methods
+
         private void AcceptLoop()
         {
             while (true)
@@ -82,32 +136,47 @@ namespace MessageNetwork
                 var cryptStream = new CryptedStream(client.GetStream(), keyPair);
                 if (cryptStream.Setup(key => TrustedKeys.Contains(key)))
                 {
-                    var session = new NodeSession<T>(cryptStream);
-                    session.InternalExceptionOccured += Session_InternalExceptionOccured;
-                    session.RawMessageReceived += Session_RawMessageReceived;
-
-                    var node = new Node<T>(session);
-                    rootNode.AddChild(node);
+                    SetupNode(cryptStream);
                 }
             }
         }
 
-        public void Setup(string host, int port)
+        private void HandleMessage(NodeMessage<T> msg)
         {
-            Setup();
-
-            tcpClient = new TcpClient();
-            tcpClient.Connect(host, port);
-            var cryptStream = new CryptedStream(tcpClient.GetStream(), keyPair);
-            if (cryptStream.Setup())
+            if (msg.IsSystemMessage)
             {
-                var session = new NodeSession<T>(cryptStream);
-                session.InternalExceptionOccured += Session_InternalExceptionOccured;
-                session.RawMessageReceived += Session_RawMessageReceived;
-
-                var node = new Node<T>(session);
-                rootNode.AddChild(node);
+                var sys = msg.SystemMessage;
+                switch (sys.Type)
+                {
+                    case SystemMessageType.NodeLeft:
+                        {
+                            var node = rootNode.Find(sys.Cast<NodeLeftMessage>().PublicKey);
+                            node.Remove();
+                            CallNodeLeft(node.PublicKey);
+                            break;
+                        }
+                    case SystemMessageType.NodeJoined:
+                        {
+                            var joinMsg = sys.Cast<NodeJoinedMessage>();
+                            var parent = rootNode.Find(joinMsg.ParentPublicKey);
+                            var node = new Node<T>(joinMsg.PublicKey);
+                            parent.AddChild(node);
+                            CallNodeJoined(node.PublicKey);
+                            break;
+                        } 
+                }
             }
+            else
+            {
+                CallMessageReceived(msg.Sender, msg.Message, msg.Receiver == null);
+            }
+        }
+
+        private void Session_InternalExceptionOccured(object sender, MessageNetworkException e)
+        {
+            var session = sender as NodeSession<T>;
+
+            throw new NotImplementedException();
         }
 
         private void Session_RawMessageReceived(NodeSession<T> sender, NodeMessage<T> message, byte[] payload)
@@ -129,21 +198,69 @@ namespace MessageNetwork
                 {
                     node.Session.SendMessage(message, payload);
                 }
+
                 HandleMessage(message);
             }
-            throw new NotImplementedException();
         }
 
-        private void HandleMessage(NodeMessage<T> msg)
+        private void SetupNode(CryptedStream cryptStream)
         {
-            throw new NotImplementedException();
+            var session = new NodeSession<T>(cryptStream);
+            session.InternalExceptionOccured += Session_InternalExceptionOccured;
+            session.RawMessageReceived += Session_RawMessageReceived;
+
+            var node = new Node<T>(session);
+            rootNode.AddChild(node);
+
+            //TODO: Send node tree
+            //TODO: Send joined message
         }
 
-        private void Session_InternalExceptionOccured(object sender, MessageNetworkException e)
+        private void CallNodeJoined(RsaKeyParameters publicKey)
         {
-            var session = sender as NodeSession<T>;
-
-            throw new NotImplementedException();
+            if (NodeJoined != null)
+            {
+                foreach (var d in NodeJoined.GetInvocationList())
+                {
+                    try
+                    {
+                        d.DynamicInvoke(this, publicKey);
+                    }
+                    catch { }
+                }
+            }
         }
+
+        private void CallNodeLeft(RsaKeyParameters publicKey)
+        {
+            if (NodeLeft != null)
+            {
+                foreach (var d in NodeLeft.GetInvocationList())
+                {
+                    try
+                    {
+                        d.DynamicInvoke(this, publicKey);
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        private void CallMessageReceived(RsaKeyParameters senderKey, T message, bool isPublic)
+        {
+            if(MessageReceived != null)
+            {
+                foreach(var d in MessageReceived.GetInvocationList())
+                {
+                    try
+                    {
+                        d.DynamicInvoke(this, senderKey, message, isPublic);
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        #endregion Private Methods
     }
 }

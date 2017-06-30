@@ -51,6 +51,8 @@
     <Compile Include="CryptedStream.cs" />
     <Compile Include="MessageNode.cs" />
     <Compile Include="Messages\CastableMessage.cs" />
+    <Compile Include="Messages\NodeJoinedMessage.cs" />
+    <Compile Include="Messages\NodeLeftMessage.cs" />
     <Compile Include="Messages\SystemMessage.cs" />
     <Compile Include="Messages\SystemMessageType.cs" />
     <Compile Include="NetworkException.cs" />
