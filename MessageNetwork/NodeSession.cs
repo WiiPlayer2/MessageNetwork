@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace MessageNetwork
 {
     class NodeSession<T>
+        where T : CastableMessage<T>
     {
         private CryptedStream baseStream;
         private BinaryWriter bWriter;

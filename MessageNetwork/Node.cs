@@ -1,4 +1,5 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
+﻿using MessageNetwork.Messages;
+using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 namespace MessageNetwork
 {
     class Node<T>
+        where T : CastableMessage<T>
     {
         private HashSet<Node<T>> children;
         private NodeSession<T> session;

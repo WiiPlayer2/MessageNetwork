@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 namespace MessageNetwork
 {
     public class MessageNode<T>
+        where T : CastableMessage<T>
     {
         private AsymmetricCipherKeyPair keyPair;
         private Node<T> rootNode;
@@ -61,7 +62,10 @@ namespace MessageNetwork
 
         public void Setup()
         {
-            //TODO: Create TrustedKeyStore if not created
+            if(TrustedKeys == null)
+            {
+                TrustedKeys = new TrustedKeyStore();
+            }
             if (tcpListener != null && acceptThread != null)
             {
                 tcpListener.Start();

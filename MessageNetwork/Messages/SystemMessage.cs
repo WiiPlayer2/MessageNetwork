@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace MessageNetwork.Messages
 {
-    public abstract class SystemMessage
+    public abstract class SystemMessage : CastableMessage<SystemMessage>
     {
-        public abstract SystemMessageType Type { get; }
+        public virtual SystemMessageType Type { get; protected set; }
     }
 }
