@@ -31,7 +31,7 @@ namespace MessageNetwork
         {
             var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MessageNetwork");
             Directory.CreateDirectory(folder);
-            var file = Path.Combine(folder, "id_rsa.key");
+            var file = Path.Combine(folder, "id_rsa");
 
             return GenerateKeyPair(file);
         }
@@ -49,16 +49,22 @@ namespace MessageNetwork
             pemWriter.Writer.Flush();
             fileWriter.Close();
 
+            fileWriter = new StreamWriter($"{file}.pub");
+            pemWriter = new PemWriter(fileWriter);
+            pemWriter.WriteObject(keyPair.Public);
+            pemWriter.Writer.Flush();
+            fileWriter.Close();
+
             return keyPair;
         }
 
-        public static AsymmetricCipherKeyPair LoadKey()
+        public static AsymmetricCipherKeyPair LoadKeyPair()
         {
-            var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MessageNetwork", "id_rsa.key");
-            return LoadKey(file);
+            var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MessageNetwork", "id_rsa");
+            return LoadKeyPair(file);
         }
 
-        public static AsymmetricCipherKeyPair LoadKey(string file)
+        public static AsymmetricCipherKeyPair LoadKeyPair(string file)
         {
             var fileReader = new StreamReader(file);
             var pemReader = new PemReader(fileReader);
@@ -68,11 +74,28 @@ namespace MessageNetwork
             return key;
         }
 
+        public static AsymmetricCipherKeyPair GenerateOrLoadKeyPair()
+        {
+            return GenerateOrLoadKeyPair(GetPath("id_rsa"));
+        }
+
+        public static AsymmetricCipherKeyPair GenerateOrLoadKeyPair(string file)
+        {
+            if (File.Exists(file))
+            {
+                return LoadKeyPair(file);
+            }
+            else
+            {
+                return GenerateKeyPair(file);
+            }
+        }
+
         public static string GetHashString(this object obj)
         {
             var hashCode = obj.GetHashCode();
             var bytes = BitConverter.GetBytes(hashCode);
-            if(!BitConverter.IsLittleEndian)
+            if (!BitConverter.IsLittleEndian)
             {
                 Array.Reverse(bytes);
             }

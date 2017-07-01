@@ -76,10 +76,10 @@ namespace MessageNetwork
             return GetAllChildren().FirstOrDefault(o => o.PublicKey.Equals(publicKey));
         }
 
-        public IEnumerable<Node<T>> GetAllChildren(bool topDown = true)
+        public IEnumerable<Node<T>> GetAllChildren(bool topDown = true, bool excludeSelf = false)
         {
             var ret = new List<Node<T>>();
-            if(topDown)
+            if(topDown && !excludeSelf)
             {
                 ret.Add(this);
             }
@@ -87,7 +87,7 @@ namespace MessageNetwork
             {
                 ret.AddRange(c.GetAllChildren(topDown));
             }
-            if(!topDown)
+            if(!topDown && !excludeSelf)
             {
                 ret.Add(this);
             }

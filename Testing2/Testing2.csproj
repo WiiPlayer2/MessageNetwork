@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C4C41932-F8D3-41E8-8F47-EE5D0ED72F3B}</ProjectGuid>
+    <ProjectGuid>{56AFE821-6D32-4601-A4CD-53D5378015C1}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Testing</RootNamespace>
-    <AssemblyName>Testing</AssemblyName>
+    <RootNamespace>Testing2</RootNamespace>
+    <AssemblyName>Testing2</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -51,9 +51,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Testing\TestingMessage.cs">
+      <Link>TestingMessage.cs</Link>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestingMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

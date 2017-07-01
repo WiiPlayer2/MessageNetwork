@@ -59,6 +59,7 @@
     <Compile Include="Messages\NodeMessage.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="NodeSession.cs" />
+    <Compile Include="PublicKey.cs" />
     <Compile Include="TrustedKeyStore.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

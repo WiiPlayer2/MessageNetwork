@@ -2,6 +2,7 @@
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -38,6 +39,7 @@ namespace MessageNetwork
             }
 
             this.keyPair = keyPair;
+            rootNode = new Node<T>(keyPair.Public as RsaKeyParameters);
         }
 
         public MessageNode(AsymmetricCipherKeyPair keyPair, IPAddress localaddr, int port)
@@ -76,7 +78,7 @@ namespace MessageNetwork
 
         #region Public Methods
 
-        public void SendMessage(RsaKeyParameters receiver, T message, byte[] payload)
+        public void SendMessage(RsaKeyParameters receiver, T message, byte[] payload = null)
         {
             //TODO: Lock tree
             if (receiver != null)
@@ -102,7 +104,7 @@ namespace MessageNetwork
             {
                 TrustedKeys = new TrustedKeyStore();
             }
-            if (tcpListener != null && acceptThread != null)
+            if (tcpListener != null && acceptThread == null)
             {
                 tcpListener.Start();
                 acceptThread = new Thread(AcceptLoop);
@@ -127,7 +129,10 @@ namespace MessageNetwork
                         return true;
                     }
                 }
-                catch { }
+                catch(Exception e)
+                {
+                    Debug.WriteLine(e);
+                }
 
                 tcpClient.Close();
                 tcpClient = null;
@@ -257,7 +262,7 @@ namespace MessageNetwork
                 n.Session.SendMessage(null, joinMsg, null);
             }
 
-            foreach (var n in rootNode.GetAllChildren(true))
+            foreach (var n in rootNode.GetAllChildren(true, true))
             {
                 session.SendMessage(null, new NodeJoinedMessage()
                 {
@@ -268,6 +273,7 @@ namespace MessageNetwork
 
             var node = new Node<T>(session);
             rootNode.AddChild(node);
+            session.StartReadLoop();
 
             CallNodeJoined(node.PublicKey);
 

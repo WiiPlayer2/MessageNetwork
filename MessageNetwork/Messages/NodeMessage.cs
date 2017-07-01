@@ -24,10 +24,19 @@ namespace MessageNetwork.Messages
         {
             get
             {
+                if(Message == null)
+                {
+                    return null;
+                }
                 return JObject.FromObject(Message);
             }
             set
             {
+                if(value == null)
+                {
+                    Message = null;
+                    return;
+                }
                 Message = value.ToObject<T>();
                 Message.JObject = value;
             }
@@ -47,10 +56,19 @@ namespace MessageNetwork.Messages
         {
             get
             {
+                if(SystemMessage == null)
+                {
+                    return null;
+                }
                 return JObject.FromObject(SystemMessage);
             }
             set
             {
+                if(value == null)
+                {
+                    SystemMessage = null;
+                    return;
+                }
                 SystemMessage = value.ToObject<SystemMessage>();
                 SystemMessage.JObject = value;
             }
