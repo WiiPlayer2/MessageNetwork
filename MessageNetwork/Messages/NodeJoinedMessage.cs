@@ -22,8 +22,8 @@ namespace MessageNetwork.Messages
             }
         }
 
-        public RsaKeyParameters PublicKey { get; set; }
+        public PublicKey PublicKey { get; set; }
 
-        public RsaKeyParameters ParentPublicKey { get; set; }
+        public PublicKey ParentPublicKey { get; set; }
     }
 }

@@ -44,9 +44,9 @@ namespace MessageNetwork.Messages
 
         public int? PayloadLength { get; set; }
 
-        public RsaKeyParameters Receiver { get; set; }
+        public PublicKey Receiver { get; set; }
 
-        public RsaKeyParameters Sender { get; set; }
+        public PublicKey Sender { get; set; }
 
         [JsonIgnore]
         public SystemMessage SystemMessage { get; internal set; }
