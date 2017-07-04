@@ -58,6 +58,8 @@ namespace MessageNetwork
 
         public delegate void MessageReceivedEventHandler(MessageNode<T> sender, RsaKeyParameters senderKey, bool isPublic, T message, byte[] payload);
 
+        public delegate void DisconnectedEventHandler(MessageNode<T> sender);
+
         #endregion Public Delegates
 
         #region Public Events
@@ -67,6 +69,8 @@ namespace MessageNetwork
         public event NodeLeftEventHandler NodeLeft;
 
         public event MessageReceivedEventHandler MessageReceived;
+
+        public event DisconnectedEventHandler Disconnected;
 
         #endregion Public Events
 
@@ -129,7 +133,7 @@ namespace MessageNetwork
                         return true;
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Debug.WriteLine(e);
                 }
@@ -196,29 +200,29 @@ namespace MessageNetwork
         {
             var session = sender as NodeSession<T>;
             var node = rootNode.Children.SingleOrDefault(o => o.Session == session);
-            
-            if(node != null)
+
+            if (node != null)
             {
                 node.Remove();
                 var leftMsg = new NodeLeftMessage()
                 {
                     PublicKey = node.PublicKey,
                 };
-                foreach(var n in rootNode.Children)
+                foreach (var n in rootNode.Children)
                 {
                     n.Session.SendMessage(null, leftMsg, null);
                 }
 
-                if(node == upstreamNode)
+                CallNodeLeft(node.PublicKey);
+
+                if (node == upstreamNode)
                 {
                     tcpClient.Close();
                     tcpClient = null;
                     upstreamNode = null;
 
-                    //TODO: Call disconnected event
+                    CallDisconnected();
                 }
-
-                CallNodeLeft(node.PublicKey);
             }
         }
 
@@ -319,6 +323,21 @@ namespace MessageNetwork
                     try
                     {
                         (d as MessageReceivedEventHandler)(this, senderKey, isPublic, message, payload);
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        private void CallDisconnected()
+        {
+            if (Disconnected != null)
+            {
+                foreach (var d in Disconnected.GetInvocationList())
+                {
+                    try
+                    {
+                        (d as DisconnectedEventHandler)(this);
                     }
                     catch { }
                 }
