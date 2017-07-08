@@ -10,7 +10,7 @@ namespace MessageNetwork.Messages
     public class CastableMessage<T>
         where T : CastableMessage<T>
     {
-        internal JObject JObject { get; set; }
+        public JObject JObject { get; set; }
 
         public S Cast<S>()
             where S : T
