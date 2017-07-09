@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace MessageNetwork.Messages
 {
+    [Serializable]
     public class NodeMessage<T>
         where T : CastableMessage<T>
     {

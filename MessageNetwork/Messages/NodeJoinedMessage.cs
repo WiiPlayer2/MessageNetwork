@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace MessageNetwork.Messages
 {
+    [Serializable]
     class NodeJoinedMessage : SystemMessage
     {
         public override SystemMessageType Type

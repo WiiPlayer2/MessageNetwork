@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace MessageNetwork.Messages
 {
+    [Serializable]
     public class CastableMessage<T>
         where T : CastableMessage<T>
     {
