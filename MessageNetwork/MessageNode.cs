@@ -76,13 +76,15 @@ namespace MessageNetwork
 
         #region Public Properties
 
+        public PublicKey PublicKey { get { return keyPair.Public as RsaKeyParameters; } }
+
         public TrustedKeyStore TrustedKeys { get; set; }
 
         #endregion Public Properties
 
         #region Public Methods
 
-        public void SendMessage(RsaKeyParameters receiver, T message, byte[] payload = null)
+        public virtual void SendMessage(RsaKeyParameters receiver, T message, byte[] payload = null)
         {
             //TODO: Lock tree
             if (receiver != null)
