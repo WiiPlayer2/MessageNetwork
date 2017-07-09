@@ -16,7 +16,7 @@ namespace MessageNetwork
 
         public override string ToString()
         {
-            return $"{string.Concat(ModulusBytes.Select(o => o.ToString("X2")))}:{string.Concat(ExponentBytes.Select(o => o.ToString("X2")))}"
+            return $"{string.Concat(ModulusBytes.Select(o => o.ToString("X2")))}:{string.Concat(ExponentBytes.Select(o => o.ToString("X2")))}";
         }
 
         public static PublicKey Parse(string str)
