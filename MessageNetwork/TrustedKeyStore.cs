@@ -8,7 +8,13 @@ namespace MessageNetwork
 {
     public class TrustedKeyStore : IEnumerable<RsaKeyParameters>
     {
+        #region Private Fields
+
         private HashSet<RsaKeyParameters> keys;
+
+        #endregion Private Fields
+
+        #region Public Constructors
 
         public TrustedKeyStore()
             : this(Utilities.GetPath("trusted_keys"))
@@ -30,7 +36,15 @@ namespace MessageNetwork
             }
         }
 
+        #endregion Public Constructors
+
+        #region Public Properties
+
         public string FolderPath { get; private set; }
+
+        #endregion Public Properties
+
+        #region Public Methods
 
         public void Add(RsaKeyParameters key)
         {
@@ -43,10 +57,12 @@ namespace MessageNetwork
             fileWriter.Close();
         }
 
-        public void Remove(RsaKeyParameters key)
+        public void Add(string keyFile)
         {
-            keys.Remove(key);
-            File.Delete(Path.Combine(FolderPath, $"{key.GetHashString()}.pub"));
+            var fileReader = new StreamReader(keyFile);
+            var pemReader = new PemReader(fileReader);
+            Add(pemReader.ReadObject() as RsaKeyParameters);
+            fileReader.Close();
         }
 
         public void Clear()
@@ -67,5 +83,13 @@ namespace MessageNetwork
         {
             return GetEnumerator();
         }
+
+        public void Remove(RsaKeyParameters key)
+        {
+            keys.Remove(key);
+            File.Delete(Path.Combine(FolderPath, $"{key.GetHashString()}.pub"));
+        }
+
+        #endregion Public Methods
     }
 }
