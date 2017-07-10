@@ -1,11 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Crypto.Parameters;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MessageNetwork.Messages
 {
@@ -25,7 +20,7 @@ namespace MessageNetwork.Messages
         {
             get
             {
-                if(Message == null)
+                if (Message == null)
                 {
                     return null;
                 }
@@ -33,7 +28,7 @@ namespace MessageNetwork.Messages
             }
             set
             {
-                if(value == null)
+                if (value == null)
                 {
                     Message = null;
                     return;
@@ -57,7 +52,7 @@ namespace MessageNetwork.Messages
         {
             get
             {
-                if(SystemMessage == null)
+                if (SystemMessage == null)
                 {
                     return null;
                 }
@@ -65,7 +60,7 @@ namespace MessageNetwork.Messages
             }
             set
             {
-                if(value == null)
+                if (value == null)
                 {
                     SystemMessage = null;
                     return;

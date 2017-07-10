@@ -4,11 +4,7 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MessageNetwork
 {
@@ -98,7 +94,7 @@ namespace MessageNetwork
 
             var remoteAuthorized = bReader.ReadBoolean();
 
-            if(!remoteAuthorized || !authorized)
+            if (!remoteAuthorized || !authorized)
             {
                 Base.Close();
             }
@@ -109,6 +105,7 @@ namespace MessageNetwork
         public Stream Base { get; private set; }
 
         #region Unsupported
+
         public override bool CanSeek
         {
             get
@@ -142,7 +139,8 @@ namespace MessageNetwork
         {
             throw new NotSupportedException();
         }
-        #endregion
+
+        #endregion Unsupported
 
         public override void SetLength(long value)
         {
@@ -189,7 +187,7 @@ namespace MessageNetwork
                 buffer[offset + i] = inputBuffer[inputBufferPos];
                 inputBufferPos++;
 
-                if(inputBufferPos == inputBuffer.Length)
+                if (inputBufferPos == inputBuffer.Length)
                 {
                     inputBuffer = null;
                     inputBufferPos = 0;
@@ -200,11 +198,11 @@ namespace MessageNetwork
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            for(var i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 outputBuffer[outputBufferPos] = buffer[offset + i];
                 outputBufferPos++;
-                if(outputBufferPos == outputBuffer.Length)
+                if (outputBufferPos == outputBuffer.Length)
                 {
                     Flush();
                 }

@@ -1,12 +1,8 @@
 ﻿using Org.BouncyCastle.Crypto.Parameters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections;
-using System.IO;
 using Org.BouncyCastle.OpenSsl;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 
 namespace MessageNetwork
 {
@@ -25,7 +21,7 @@ namespace MessageNetwork
 
             keys = new HashSet<RsaKeyParameters>();
 
-            foreach(var f in Directory.EnumerateFiles(FolderPath))
+            foreach (var f in Directory.EnumerateFiles(FolderPath))
             {
                 var fileReader = new StreamReader(f);
                 var pemReader = new PemReader(fileReader);
@@ -56,7 +52,7 @@ namespace MessageNetwork
         public void Clear()
         {
             keys.Clear();
-            foreach(var f in Directory.EnumerateFiles(FolderPath))
+            foreach (var f in Directory.EnumerateFiles(FolderPath))
             {
                 File.Delete(f);
             }

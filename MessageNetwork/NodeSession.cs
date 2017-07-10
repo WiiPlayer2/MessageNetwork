@@ -2,16 +2,12 @@
 using Newtonsoft.Json;
 using Org.BouncyCastle.Crypto.Parameters;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MessageNetwork
 {
-    class NodeSession<T>
+    internal class NodeSession<T>
         where T : CastableMessage<T>
     {
         private CryptedStream baseStream;
@@ -39,7 +35,7 @@ namespace MessageNetwork
                     var msg = JsonConvert.DeserializeObject<NodeMessage<T>>(json);
                     byte[] payload = null;
 
-                    if(msg.PayloadLength.HasValue)
+                    if (msg.PayloadLength.HasValue)
                     {
                         payload = bReader.ReadBytes(msg.PayloadLength.Value);
                     }
@@ -75,7 +71,9 @@ namespace MessageNetwork
         }
 
         public delegate void RawMessageReceivedEventHandler(NodeSession<T> sender, NodeMessage<T> message, byte[] payload);
-        public event RawMessageReceivedEventHandler RawMessageReceived = (_,__,___)=> { };
+
+        public event RawMessageReceivedEventHandler RawMessageReceived = (_, __, ___) => { };
+
         public event EventHandler<MessageNetworkException> InternalExceptionOccured = (_, __) => { };
 
         public void SendMessage(NodeMessage<T> msg, byte[] payload)
@@ -94,7 +92,7 @@ namespace MessageNetwork
                     bWriter.Flush();
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 InternalExceptionOccured(this, new MessageNetworkException("Error while sending a message.", e));
             }

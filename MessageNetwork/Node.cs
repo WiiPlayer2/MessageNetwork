@@ -1,14 +1,11 @@
 ﻿using MessageNetwork.Messages;
 using Org.BouncyCastle.Crypto.Parameters;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MessageNetwork
 {
-    class Node<T>
+    internal class Node<T>
         where T : CastableMessage<T>
     {
         #region Private Fields
@@ -39,17 +36,18 @@ namespace MessageNetwork
         public IEnumerable<Node<T>> Children { get { return children; } }
         public Node<T> Parent { get; private set; }
         public RsaKeyParameters PublicKey { get; private set; }
+
         public NodeSession<T> Session
         {
             get
             {
-                if(session != null)
+                if (session != null)
                 {
                     return session;
                 }
                 else
                 {
-                    if(Parent != null)
+                    if (Parent != null)
                     {
                         return Parent.Session;
                     }
@@ -79,15 +77,15 @@ namespace MessageNetwork
         public IEnumerable<Node<T>> GetAllChildren(bool topDown = true, bool excludeSelf = false)
         {
             var ret = new List<Node<T>>();
-            if(topDown && !excludeSelf)
+            if (topDown && !excludeSelf)
             {
                 ret.Add(this);
             }
-            foreach(var c in Children)
+            foreach (var c in Children)
             {
                 ret.AddRange(c.GetAllChildren(topDown));
             }
-            if(!topDown && !excludeSelf)
+            if (!topDown && !excludeSelf)
             {
                 ret.Add(this);
             }

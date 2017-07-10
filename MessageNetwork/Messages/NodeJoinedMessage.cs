@@ -1,14 +1,9 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace MessageNetwork.Messages
 {
     [Serializable]
-    class NodeJoinedMessage : SystemMessage
+    internal class NodeJoinedMessage : SystemMessage
     {
         public override SystemMessageType Type
         {

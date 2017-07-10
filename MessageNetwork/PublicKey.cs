@@ -1,10 +1,6 @@
 ﻿using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MessageNetwork
 {
@@ -25,7 +21,7 @@ namespace MessageNetwork
             var modBytes = new byte[split[0].Length / 2];
             var expBytes = new byte[split[1].Length / 2];
 
-            for(var i = 0; i < modBytes.Length; i++)
+            for (var i = 0; i < modBytes.Length; i++)
             {
                 modBytes[i] = byte.Parse(split[0].Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
             }
@@ -53,11 +49,11 @@ namespace MessageNetwork
 
         public override bool Equals(object obj)
         {
-            if(obj is PublicKey)
+            if (obj is PublicKey)
             {
                 return this == (PublicKey)obj;
             }
-            if(obj is RsaKeyParameters)
+            if (obj is RsaKeyParameters)
             {
                 return this == (PublicKey)(RsaKeyParameters)obj;
             }
