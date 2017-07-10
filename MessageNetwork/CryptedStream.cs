@@ -87,15 +87,23 @@ namespace MessageNetwork
 
             if (!authorized)
             {
-                Base.Close();
+                bWriter.Write(false);
             }
             else
             {
+                bWriter.Write(true);
                 encryptEngine.Init(true, publicKey);
                 outputBuffer = new byte[encryptEngine.GetInputBlockSize()];
             }
 
-            return authorized;
+            var remoteAuthorized = bReader.ReadBoolean();
+
+            if(!remoteAuthorized || !authorized)
+            {
+                Base.Close();
+            }
+
+            return authorized && remoteAuthorized;
         }
 
         public Stream Base { get; private set; }
